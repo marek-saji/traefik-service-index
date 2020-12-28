@@ -1,5 +1,6 @@
 import { promises as fsPromises } from 'fs';
 import { join as joinPath } from 'path';
+import { hostname } from 'os';
 import { createServer } from 'http';
 
 import nconf from 'nconf';
@@ -40,7 +41,7 @@ async function setupOptions ()
 
     nconf.defaults({
         [CONF_PORT]: 8000,
-        [CONF_CONFIG_FILE]: '/etc/traefik.toml',
+        [CONF_CONFIG_FILE]: '/etc/traefik/traefik.toml',
     });
 
     return nconf.get();
@@ -55,17 +56,18 @@ async function getRoutersConfig (traefikConfigFilePath)
     const routers =
         (traefikConfig.http || {}).routers || [];
 
-    const providersDirectoryX =
+    const providersDirectory =
         ((traefikConfig.providers || {}).file || {}).directory;
-    const providersDirectory = providersDirectoryX ? providersDirectoryX.replace('/etc/', './') : providersDirectoryX;
 
     if (providersDirectory)
     {
-        const providersFiles = (await readDir(providersDirectory))
-            .map((baseName) => joinPath(providersDirectory, baseName));
+        const providersConfigPromise =
+            (await readDir(providersDirectory))
+                .map((f) => joinPath(providersDirectory, f))
+                .map(getRoutersConfig);
         Object.assign(
             routers,
-            ...(await Promise.all(providersFiles.map(getRoutersConfig))),
+            ...(await Promise.all(providersConfigPromise)),
         );
     }
 
@@ -75,13 +77,12 @@ async function getRoutersConfig (traefikConfigFilePath)
 async function getRoutes (traefikConfigFilePath)
 {
     const routersConfig = await getRoutersConfig(traefikConfigFilePath);
-    const routesEntries = Object.values(routersConfig).map(
-        ({ rule, service }) => [
+    const routesEntries = Object.values(routersConfig)
+        .filter(({ rule }) => /PathPrefix/.test(rule))
+        .map(({ service, rule }) => [
             service,
-            // FIXME Don’t assume that `rule` uses `PathPrefix`
             rule.match(/^PathPrefix\(.(.*).\)$/)[1],
-        ],
-    );
+        ]);
     const routes = new Map(routesEntries);
 
     process.stdout.write(`Found ${routes.size} route(s)\n`);
@@ -91,10 +92,13 @@ async function getRoutes (traefikConfigFilePath)
 
 function createRequestHandler (routes)
 {
+    const title = hostname();
     const html = [
         '<!doctype html>',
         '<html>',
+        `<title>${title}</title>`,
         '<style>:root { font: 3em/1 sans-serif; }</style>',
+        `<h1>${title}</h1>`,
         '<ul>',
         ...Array.from(routes.entries()).map(
             ([name, url]) => `<li><a href="${url}">${name}</a>`,
