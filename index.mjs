@@ -1,7 +1,7 @@
 import { promises as fsPromises } from 'fs';
 import { join as joinPath } from 'path';
-import { hostname } from 'os';
 import { createServer } from 'http';
+import { hostname } from 'os';
 
 import nconf from 'nconf';
 import yargs from 'yargs';
@@ -79,10 +79,12 @@ async function getRoutes (traefikConfigFilePath)
     const routersConfig = await getRoutersConfig(traefikConfigFilePath);
     const routesEntries = Object.values(routersConfig)
         .filter(({ rule }) => /PathPrefix/.test(rule))
-        .map(({ service, rule }) => [
-            service,
-            rule.match(/^PathPrefix\(.(.*).\)$/)[1],
-        ]);
+        .map(
+            ({ rule, service }) => [
+                service,
+                rule.match(/^PathPrefix\(.(.*).\)$/)[1],
+            ],
+        );
     const routes = new Map(routesEntries);
 
     process.stdout.write(`Found ${routes.size} route(s)\n`);
@@ -97,13 +99,23 @@ function createRequestHandler (routes)
         '<!doctype html>',
         '<html>',
         `<title>${title}</title>`,
-        '<style>:root { font: 3em/1 sans-serif; }</style>',
+        '<style>',
+        '  :root { font: 3em/1 sans-serif; background: #333; color: #eee; }',
+        '  a { color: inherit }',
+        '  img { --size: 1.5em; width: var(--size); height: var(--size); vertical-align: middle; }',
+        '</style>',
         `<h1>${title}</h1>`,
         '<ul>',
-        ...Array.from(routes.entries()).map(
-            ([name, url]) => `<li><a href="${url}">${name}</a>`,
-        ),
-    ].join('');
+        ...Array.from(routes.entries()).map(([name, url]) => [
+            `<li><a href="${url}">`,
+            {
+                '/watch': `<img src="${url}/web/favicon.png"> `,
+                '/get': `<img src="${url}/web/images/webclip-icon.png"> `,
+            }[url] || `<img src="${url}/favicon.ico"> `,
+            name,
+            '</a></li>',
+        ]).flat(),
+    ].join('\n');
 
     return function requestHandler (request, response) {
         process.stdout.write(`${request.method} ${request.url}\n`);
