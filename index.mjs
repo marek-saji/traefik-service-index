@@ -123,6 +123,8 @@ function createRequestHandler (routes)
         ...Array.from(routes.entries()).map(([name, url]) => [
             `<li><a href="${url}">`,
             {
+                // TODO Maybe fetch url HTML and get icon from there?
+                //      Remember that it might not be available on first request.
                 '/watch': `<img src="${url}/web/favicon.png"> `,
                 '/get': `<img src="${url}/web/images/webclip-icon.png"> `,
             }[url] || `<img src="${url}/favicon.ico"> `,
