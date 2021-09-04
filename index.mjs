@@ -50,8 +50,18 @@ async function setupOptions ()
 async function getRoutersConfig (traefikConfigFilePath)
 {
     process.stdout.write(`Reading config from ${traefikConfigFilePath}\n`);
+    let traefikConfigFileContents;
+    try
+    {
+        traefikConfigFileContents = await readFile(traefikConfigFilePath, 'utf-8');
+    }
+    catch (error)
+    {
+        process.stdout.write('ERROR Failed to read contents of a file - continuing with empty config\n');
+        return new Map();
+    }
 
-    const traefikConfig = parseToml(await readFile(traefikConfigFilePath, 'utf-8'));
+    const traefikConfig = parseToml(traefikConfigFileContents);
 
     const routers =
         (traefikConfig.http || {}).routers || [];
