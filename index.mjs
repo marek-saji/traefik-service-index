@@ -82,6 +82,7 @@ async function getRoutersConfig (traefikConfigFilePath)
     {
         const providersConfigPromise =
             (await readDir(providersDirectory))
+                .filter((f) => f.endsWith('.toml'))
                 .map((f) => joinPath(providersDirectory, f))
                 .map(getRoutersConfig);
         Object.assign(
