@@ -57,11 +57,20 @@ async function getRoutersConfig (traefikConfigFilePath)
     }
     catch (error)
     {
-        process.stdout.write('ERROR Failed to read contents of a file - continuing with empty config\n');
-        return new Map();
+        process.stdout.write(`WARNING Failed to read contents of '${traefikConfigFilePath}' - skipping:\n${error}\n`);
+        return [];
     }
 
-    const traefikConfig = parseToml(traefikConfigFileContents);
+    let traefikConfig;
+    try
+    {
+        traefikConfig = parseToml(traefikConfigFileContents);
+    }
+    catch (error)
+    {
+        process.stdout.write(`WARNING Failed to parse contents of '${traefikConfigFilePath}' - skipping:\n${error}\n`);
+        return [];
+    }
 
     const routers =
         (traefikConfig.http || {}).routers || [];
