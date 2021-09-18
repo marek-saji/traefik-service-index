@@ -125,22 +125,22 @@ function createRequestHandler (routes)
         '  :root { --bg-colour: #333; --fg-colour: #eee; }',
         '  }',
         '  :root { font: 3em/1 sans-serif; background: var(--bg-colour); color: var(--fg-colour); }',
-        '  a { color: inherit }',
-        '  img { --size: 1.5em; width: var(--size); height: var(--size); vertical-align: middle; }',
+        '  a { color: inherit; }',
+        '  img { --size: 1.5em; width: var(--size); height: var(--size); margin-inline-end: 1ch; vertical-align: middle; }',
         '</style>',
         `<h1>${title}</h1>`,
         '<ul>',
         ...Array.from(routes.entries()).map(([name, url]) => [
             `<li><a href="${url}">`,
             {
-                // TODO Maybe fetch url HTML and get icon from there?
+                // TODO Fetch HTML and get icon from there.
                 //      Remember that it might not be available on first request.
-                '/watch': `<img src="${url}/web/favicon.png"> `,
-                '/get': `<img src="${url}/web/images/webclip-icon.png"> `,
-            }[url] || `<img src="${url}/favicon.ico"> `,
+                '/watch': `<img src="${url}/web/favicon.png" alt="">`,
+                '/get': `<img src="${url}/web/images/webclip-icon.png" alt="">`,
+            }[url] || `<img src="${url}/favicon.ico" alt="">`,
             name,
             '</a></li>',
-        ]).flat(),
+        ].join('')),
     ].join('\n');
 
     return function requestHandler (request, response) {
