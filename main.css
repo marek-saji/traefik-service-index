@@ -1,0 +1,37 @@
+:root
+{
+    --bg-colour: #eee;
+    --fg-colour: #333;
+
+    color: var(--fg-colour);
+    font: 3em/1 sans-serif;
+    background: var(--bg-colour);
+}
+
+@media (prefers-color-scheme: dark)
+{
+    :root
+    {
+        --bg-colour: #333;
+        --fg-colour: #eee;
+    }
+}
+
+a
+{
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    margin-block: 0.25lh;
+}
+
+img
+{
+    --size: 1.5em;
+
+    width: var(--size);
+    height: var(--size);
+    margin-inline-end: 1ch;
+    vertical-align: middle;
+    border-radius: 22.37%;
+}

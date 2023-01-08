@@ -1,4 +1,4 @@
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises, readFileSync } from 'fs';
 import { join as joinPath } from 'path';
 import { createServer } from 'http';
 import { hostname } from 'os';
@@ -15,12 +15,15 @@ const CONF_CONFIG_FILE = 'traefik-config-file';
 const CONF_PORT = 'port';
 const CONF_DUMMY = 'dummy';
 
+const PACKAGE_JSON = JSON.parse(
+    readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+);
+
+const STYLE = readFileSync(new URL('./main.css', import.meta.url), 'utf-8');
+const SCRIPT = readFileSync(new URL('./main.js', import.meta.url), 'utf-8');
+
 async function setupOptions ()
 {
-    const PACKAGE_JSON = JSON.parse(
-        await readFile(new URL('./package.json', import.meta.url), 'utf-8'),
-    );
-
     nconf.argv(yargs(hideBin(process.argv))
         .version(PACKAGE_JSON.version)
         .usage(PACKAGE_JSON.description)
@@ -112,7 +115,7 @@ async function getRoutes (traefikConfigFilePath)
         );
     const routes = new Map(routesEntries);
 
-    process.stdout.write(`Found ${routes.size} route(s)\n`);
+    process.stdout.write(`Found ${routes.size} route(s): ${Array.from(routes.values())}\n`);
 
     return routes;
 }
@@ -124,28 +127,16 @@ function createRequestHandler (routes)
         '<!doctype html>',
         '<html>',
         `<title>${title}</title>`,
-        '<style>',
-        '  :root { --bg-colour: #eee; --fg-colour: #333; }',
-        '  @media (prefers-color-scheme: dark) {',
-        '    :root { --bg-colour: #333; --fg-colour: #eee; }',
-        '  }',
-        '  :root { font: 3em/1 sans-serif; background: var(--bg-colour); color: var(--fg-colour); }',
-        '  a { color: inherit; text-decoration: none; display: inline-block; margin-block: 0.25lh; }',
-        '  img { --size: 1.5em; width: var(--size); height: var(--size); margin-inline-end: 1ch; vertical-align: middle; border-radius: 22.37%; }',
-        '</style>',
+        `<style>${STYLE}</style>`,
         `<h1>${title}</h1>`,
         '<ul>',
         ...Array.from(routes.entries()).map(([name, url]) => [
-            `<li><a href="${url}">`,
-            {
-                // TODO Fetch HTML and get icon from there.
-                //      Remember that it might not be available on first request.
-                '/watch': `<img src="${url}/web/favicon.png" alt="">`,
-                '/get': `<img src="${url}/web/images/webclip-icon.png" alt="">`,
-            }[url] || `<img src="${url}/favicon.ico" alt="">`,
+            `<li><a href="${url}" data-service>`,
+            `<img src="${url}/icon.png" alt="">`,
             name,
             '</a></li>',
         ].join('')),
+        `<script type=module>${SCRIPT}</script>`,
     ].join('\n');
 
     return function requestHandler (request, response) {
