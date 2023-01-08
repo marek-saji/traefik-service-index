@@ -13,6 +13,7 @@ const { readFile, readdir: readDir } = fsPromises;
 
 const CONF_CONFIG_FILE = 'traefik-config-file';
 const CONF_PORT = 'port';
+const CONF_DUMMY = 'dummy';
 
 async function setupOptions ()
 {
@@ -34,6 +35,10 @@ async function setupOptions ()
                 alias: 'c',
                 type: 'string',
                 description: 'Path to traefik configuration file',
+            },
+            [CONF_DUMMY]: {
+                type: 'bool',
+                description: 'Run in dummy mode without reading Traefik config',
             },
         }));
 
@@ -188,7 +193,19 @@ async function main ()
     const traefikConfigFilePath = config[CONF_CONFIG_FILE];
     const port = config[CONF_PORT];
 
-    const routes = await getRoutes(traefikConfigFilePath);
+    let routes;
+    if (config[CONF_DUMMY])
+    {
+        routes = new Map([
+            ['foo', '#foo'],
+            ['bar', '#bar'],
+        ]);
+    }
+    else
+    {
+        routes = await getRoutes(traefikConfigFilePath);
+    }
+
     createIndexServer(port, routes);
 }
 
