@@ -129,6 +129,7 @@ function createRequestHandler (routes)
         `<title>${title}</title>`,
         `<style>${STYLE}</style>`,
         `<h1>${title}</h1>`,
+        '<nav>',
         '<ul>',
         ...Array.from(routes.entries()).map(([name, url]) => [
             `<li><a href="${url}" data-service>`,
@@ -136,6 +137,8 @@ function createRequestHandler (routes)
             name,
             '</a></li>',
         ].join('')),
+        '</ul>',
+        '</nav>',
         `<script type=module>${SCRIPT}</script>`,
     ].join('\n');
 
