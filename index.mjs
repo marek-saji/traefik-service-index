@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { promises as fsPromises, readFileSync } from 'fs';
 import { join as joinPath } from 'path';
 import { createServer } from 'http';
