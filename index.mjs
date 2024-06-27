@@ -136,7 +136,10 @@ function createRequestHandler (routes)
         ...Array.from(routes.entries()).map(([name, url]) => [
             `<li><a href="${url}" data-service>`,
             `<img src="${url}/icon.png" alt="">`,
-            name,
+            '<b>',
+            name.substring(0, 1),
+            '</b>',
+            name.substring(1),
             '</a></li>',
         ].join('')),
         '</ul>',
