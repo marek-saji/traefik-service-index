@@ -35,3 +35,30 @@ img
     vertical-align: middle;
     border-radius: 22.37%;
 }
+
+.df
+{
+    font-size: 0.5em;
+
+    dd
+    {
+        margin: 0;
+    }
+}
+
+.df__path
+{
+    font-family: monospace;
+}
+
+.df__path,
+.df__values
+{
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+}
+
+.df__bar
+{
+    display: block;
+}

@@ -122,7 +122,50 @@ async function getRoutes (traefikConfigFilePath)
     return routes;
 }
 
-function createRequestHandler (routes)
+async function getDiskSpace (path)
+{
+    const stat = await fsPromises.statfs(path);
+    return {
+        free: stat.bfree * stat.bsize,
+        used: (stat.blocks - stat.bfree) * stat.bsize,
+        total: stat.blocks * stat.bsize,
+    };
+}
+
+async function getDiskSpaceVars (workfilesPath)
+{
+    const [rootStat, workfilesStat] = await Promise.all([
+        getDiskSpace('/'),
+        getDiskSpace(workfilesPath),
+    ]);
+
+    const formatter = new Intl.NumberFormat(undefined, {
+        notator: 'compact',
+        style: 'unit',
+        unit: 'megabyte',
+        unitDisplay: 'short',
+        maximumFractionDigits: 2,
+    });
+
+    const ONE_MB = 1024 * 1024;
+
+    return {
+        rootUsedSpaceBytes: rootStat.used,
+        rootFreeSpaceHuman:
+            formatter.format(rootStat.free / ONE_MB),
+        rootTotalSpaceBytes: rootStat.total,
+        rootTotalSpaceHuman:
+            formatter.format(rootStat.total / ONE_MB),
+        workfilesUsedSpaceBytes: workfilesStat.used,
+        workfilesFreeSpaceHuman:
+            formatter.format(workfilesStat.free / ONE_MB),
+        workfilesTotalSpaceBytes: workfilesStat.total,
+        workfilesTotalSpaceHuman:
+            formatter.format(workfilesStat.total / ONE_MB),
+    };
+}
+
+function createRequestHandler (routes, workfilesPath)
 {
     const title = hostname();
     const html = [
@@ -144,23 +187,46 @@ function createRequestHandler (routes)
         ].join('')),
         '</ul>',
         '</nav>',
+        '<section>',
+        '<dl class="df">',
+        '<div class="df__item">',
+        '<dt class="df__path">/</dt>',
+        '<dd class="df__values">{{rootFreeSpaceHuman}} / {{rootTotalSpaceHuman}}</dd>',
+        '<dd class="df__bar"><progress value="{{rootUsedSpaceBytes}}" max="{{rootTotalSpaceBytes}}"></progress></dd>',
+        '</div>',
+        '<div class="df__item">',
+        `<dt class="df__path">${workfilesPath}</dt>`,
+        '<dd class="df__values">{{workfilesFreeSpaceHuman}} / {{workfilesTotalSpaceHuman}}</dd>',
+        '<dd class="df__bar"><progress value="{{workfilesUsedSpaceBytes}}" max="{{workfilesTotalSpaceBytes}}"></progress></dd>',
+        '</div>',
+        '</dl>',
+        '</section>',
         `<script type=module>${SCRIPT}</script>`,
     ].join('\n');
 
-    return function requestHandler (request, response) {
+    return async function requestHandler (request, response) {
         process.stdout.write(`${request.method} ${request.url}\n`);
 
         if (request.url === '/favicon.ico')
         {
             response.writeHead(404);
             response.end();
-            return;
         }
-
-        response.writeHead(200, 'Found', {
-            'Content-Type': 'text/html',
-        });
-        response.end(html);
+        else
+        {
+            const variables = {
+                ...await getDiskSpaceVars(workfilesPath),
+            };
+            response.writeHead(200, 'Found', {
+                'Content-Type': 'text/html',
+            });
+            let responseHtml = html;
+            for (const [key, value] of Object.entries(variables))
+            {
+                responseHtml = responseHtml.replace(new RegExp(`{{${key}}}`, 'g'), value);
+            }
+            response.end(responseHtml);
+        }
     };
 }
 
@@ -176,9 +242,11 @@ function formatHttpAddress ({ family, address: rawAddress, port })
     return `http://${address}:${port}`;
 }
 
-async function createIndexServer (port, routes)
+async function createIndexServer (port, routes, workfilesPath)
 {
-    const server = createServer(createRequestHandler(routes));
+    const server = createServer(
+        createRequestHandler(routes, workfilesPath),
+    );
     server.listen(port, () => {
         process.stdout.write(`Listening on ${formatHttpAddress(server.address())}\n`);
     });
@@ -193,19 +261,22 @@ async function main ()
     const port = config[CONF_PORT];
 
     let routes;
+    let workfilesPath;
     if (config[CONF_DUMMY])
     {
         routes = new Map([
             ['foo', '#foo'],
             ['bar', '#bar'],
         ]);
+        workfilesPath = '/';
     }
     else
     {
         routes = await getRoutes(traefikConfigFilePath);
+        workfilesPath = '/media/workfiles';
     }
 
-    createIndexServer(port, routes);
+    createIndexServer(port, routes, workfilesPath);
 }
 
 main();
