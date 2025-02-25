@@ -171,6 +171,7 @@ function createRequestHandler (routes, workfilesPath)
     const html = [
         '<!doctype html>',
         '<html>',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
         `<title>${title}</title>`,
         `<style>${STYLE}</style>`,
         `<h1>${title}</h1>`,
