@@ -4,8 +4,9 @@
     --fg-colour: #333;
 
     color: var(--fg-colour);
-    font: 3em/1 sans-serif;
+    font: 3em/1 system-ui, sans-serif;
     background: var(--bg-colour);
+    color-scheme: dark light;
 }
 
 @media (prefers-color-scheme: dark)
