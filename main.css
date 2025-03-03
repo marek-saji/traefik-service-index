@@ -39,6 +39,11 @@ img
 
 .df
 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    inline-size: max-content;
+    max-inline-size: 100%;
     font-size: 0.5em;
 
     dd
@@ -47,19 +52,22 @@ img
     }
 }
 
+.df__path,
+.df__space
+{
+    display: block;
+    font-variant-numeric: tabular-nums;
+}
+
 .df__path
 {
     font-family: monospace;
 }
 
-.df__path,
-.df__values
+.df__space
 {
-    display: inline-block;
-    font-variant-numeric: tabular-nums;
-}
-
-.df__bar
-{
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em 0.5em;
+    place-content: space-between;
 }
