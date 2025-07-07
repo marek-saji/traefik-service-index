@@ -26,6 +26,11 @@ a
     margin-block: 0.25lh;
 }
 
+b
+{
+    font-weight: 800;
+}
+
 img
 {
     --size: 1.5em;
