@@ -139,29 +139,43 @@ async function getDiskSpaceVars (workfilesPath)
         getDiskSpace(workfilesPath),
     ]);
 
-    const formatter = new Intl.NumberFormat(undefined, {
+    const formatterOptions = {
         notator: 'compact',
         style: 'unit',
-        unit: 'megabyte',
         unitDisplay: 'short',
         maximumFractionDigits: 2,
+    };
+    const formatterMb = new Intl.NumberFormat(undefined, {
+        unit: 'megabyte',
+        ...formatterOptions,
+    });
+    const formatterGb = new Intl.NumberFormat(undefined, {
+        unit: 'gigabyte',
+        ...formatterOptions,
     });
 
     const ONE_MB = 1024 * 1024;
+    const ONE_GB = 1024 * ONE_MB;
+
+    function format (value)
+    {
+        if (value >= 2 * ONE_GB)
+        {
+            return formatterGb.format(value / ONE_GB);
+        }
+
+        return formatterMb.format(value / ONE_MB);
+    }
 
     return {
         rootUsedSpaceBytes: rootStat.used,
-        rootFreeSpaceHuman:
-            formatter.format(rootStat.free / ONE_MB),
+        rootFreeSpaceHuman: format(rootStat.free),
         rootTotalSpaceBytes: rootStat.total,
-        rootTotalSpaceHuman:
-            formatter.format(rootStat.total / ONE_MB),
+        rootTotalSpaceHuman: format(rootStat.total),
         workfilesUsedSpaceBytes: workfilesStat.used,
-        workfilesFreeSpaceHuman:
-            formatter.format(workfilesStat.free / ONE_MB),
+        workfilesFreeSpaceHuman: format(workfilesStat.free),
         workfilesTotalSpaceBytes: workfilesStat.total,
-        workfilesTotalSpaceHuman:
-            formatter.format(workfilesStat.total / ONE_MB),
+        workfilesTotalSpaceHuman: format(workfilesStat.total),
     };
 }
 
