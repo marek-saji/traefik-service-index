@@ -126,8 +126,8 @@ async function getDiskSpace (path)
 {
     const stat = await fsPromises.statfs(path);
     return {
-        free: stat.bfree * stat.bsize,
-        used: (stat.blocks - stat.bfree) * stat.bsize,
+        free: stat.bavail * stat.bsize,
+        used: (stat.blocks - stat.bavail) * stat.bsize,
         total: stat.blocks * stat.bsize,
     };
 }
