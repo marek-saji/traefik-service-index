@@ -18,6 +18,15 @@
     }
 }
 
+h1
+{
+    margin-block: 0.5lh;
+    line-height: 0.8em;
+    /* stylelint-disable-next-line property-no-unknown */
+    text-box: trim-both cap alphabetic;
+    hyphens: auto;
+}
+
 a
 {
     display: inline-block;
