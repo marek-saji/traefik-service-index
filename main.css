@@ -49,6 +49,8 @@ img
     margin-inline-end: 1ch;
     vertical-align: middle;
     border-radius: 22.37%;
+    /* stylelint-disable-next-line property-no-unknown */
+    corner-shape: squircle;
 }
 
 .df
