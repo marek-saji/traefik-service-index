@@ -194,10 +194,12 @@ function createRequestHandler (routes, workfilesPath)
         ...Array.from(routes.entries()).map(([name, url]) => [
             `<li><a href="${url}" data-service>`,
             `<img src="${url}/icon.png" alt="">`,
+            '<span>',
             '<b>',
             name.substring(0, 1),
             '</b>',
             name.substring(1),
+            '</span>',
             '</a></li>',
         ].join('')),
         '</ul>',
@@ -286,6 +288,7 @@ async function main ()
         routes = new Map([
             ['foo', '#foo'],
             ['bar', '#bar'],
+            ['foo bar zar nar', '#foobarzarnar'],
         ]);
         workfilesPath = '/';
     }
